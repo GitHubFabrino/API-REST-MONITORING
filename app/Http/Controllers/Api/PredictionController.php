@@ -64,6 +64,61 @@ class PredictionController extends Controller
     //     return response()->json(['prediction' => trim($output)]);
     // }
 
+    // public function predict(Request $request)
+    // {
+    //     // Validation des données d'entrée sans les unités
+    //     $validated = $request->validate([
+    //         'Cycles' => 'required|numeric',
+    //         'T_charge' => 'required|numeric',
+    //         'T_discharge' => 'required|numeric',
+    //         'V_charge' => 'required|numeric',
+    //         'V_discharge' => 'required|numeric',
+    //         'V_max_dis' => 'required|numeric',
+    //         'V_min_chg' => 'required|numeric',
+    //         'I_charge' => 'required|numeric',
+    //         'I_discharge' => 'required|numeric',
+    //         'T_charge_temp' => 'required|numeric',
+    //         'T_discharge_temp' => 'required|numeric',
+    //     ]);
+
+    //     // Extraire les données validées
+    //     $input_data = [
+    //         'Cycles' => $validated['Cycles'],
+    //         'T_charge' => $validated['T_charge'],
+    //         'T_discharge' => $validated['T_discharge'],
+    //         'V_charge' => $validated['V_charge'],
+    //         'V_discharge' => $validated['V_discharge'],
+    //         'V_max_dis' => $validated['V_max_dis'],
+    //         'V_min_chg' => $validated['V_min_chg'],
+    //         'I_charge' => $validated['I_charge'],
+    //         'I_discharge' => $validated['I_discharge'],
+    //         'T_charge_temp' => $validated['T_charge_temp'],
+    //         'T_discharge_temp' => $validated['T_discharge_temp'],
+    //     ];
+
+    //     // Convertir les données en une chaîne pour les passer au script Python
+    //     $data_str = implode(' ', $input_data);
+
+    //     // Définir les chemins des modèles et du script Python
+    //     $model_rul_path = storage_path('/app/models/Random Forest_rul_model.pkl');
+    //     $model_soh_path = storage_path('/app/models/Random Forest_soh_model.pkl');
+    //     $script_path = storage_path('/app/models/predict.py');
+
+    //     // Construire la commande pour exécuter le script Python avec les bons arguments
+    //     $command = "python3 \"$script_path\" \"$model_rul_path\" \"$model_soh_path\" $data_str";
+
+    //     // Exécuter la commande et récupérer le résultat
+    //     $output = shell_exec($command);
+    //     $predictionData = json_decode($output, true);
+
+    //     // Retourner la prédiction dans la réponse JSON
+    //     if ($output) {
+    //         return response()->json($predictionData);
+    //     } else {
+    //         return response()->json(['error' => 'Erreur lors de l\'exécution du script Python'], 500);
+    //     }
+    // }
+
     public function predict(Request $request)
     {
         // Validation des données d'entrée sans les unités
@@ -83,29 +138,30 @@ class PredictionController extends Controller
 
         // Extraire les données validées
         $input_data = [
-            'Cycles' => $validated['Cycles'],
-            'T_charge' => $validated['T_charge'],
-            'T_discharge' => $validated['T_discharge'],
-            'V_charge' => $validated['V_charge'],
-            'V_discharge' => $validated['V_discharge'],
-            'V_max_dis' => $validated['V_max_dis'],
-            'V_min_chg' => $validated['V_min_chg'],
-            'I_charge' => $validated['I_charge'],
-            'I_discharge' => $validated['I_discharge'],
-            'T_charge_temp' => $validated['T_charge_temp'],
-            'T_discharge_temp' => $validated['T_discharge_temp'],
+            $validated['Cycles'],
+            $validated['T_charge'],
+            $validated['T_discharge'],
+            $validated['V_charge'],
+            $validated['V_discharge'],
+            $validated['V_max_dis'],
+            $validated['V_min_chg'],
+            $validated['I_charge'],
+            $validated['I_discharge'],
+            $validated['T_charge_temp'],
+            $validated['T_discharge_temp']
         ];
 
         // Convertir les données en une chaîne pour les passer au script Python
         $data_str = implode(' ', $input_data);
 
-        // Définir les chemins des modèles et du script Python
+        // Définir les chemins des modèles et du scaler
         $model_rul_path = storage_path('/app/models/Random Forest_rul_model.pkl');
         $model_soh_path = storage_path('/app/models/Random Forest_soh_model.pkl');
+        $scaler_path = storage_path('/app/models/scaler.pkl');
         $script_path = storage_path('/app/models/predict.py');
 
         // Construire la commande pour exécuter le script Python avec les bons arguments
-        $command = "python3 \"$script_path\" \"$model_rul_path\" \"$model_soh_path\" $data_str";
+        $command = "python3 \"$script_path\" \"$model_rul_path\" \"$model_soh_path\" \"$scaler_path\" $data_str";
 
         // Exécuter la commande et récupérer le résultat
         $output = shell_exec($command);
@@ -118,4 +174,6 @@ class PredictionController extends Controller
             return response()->json(['error' => 'Erreur lors de l\'exécution du script Python'], 500);
         }
     }
+
+
 }
