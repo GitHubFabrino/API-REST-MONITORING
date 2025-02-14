@@ -1,0 +1,31 @@
+0 - php artisan serve
+1 - php artisan make:migration create_authors_table
+2 - php artisan migrate ou php artisan migrate:refresh
+3 - php artisan make:model Author
+4 - php artisan install:api
+5 - php artisan make:controller Api/AuthorController --api
+6 - One to one (hasOne to belongsTo (FK)) 
+7 - One to Many (hasMany to belongsTo (FK)) 
+
+
+7 - Many to many : 
+a) php artisan make:migration create_role_user_table
+b) belongsToMany
+
+
+8 - Modele ande migration : php artisan make:model Product -m
+
+
+A noter : 
+- $table->text('description')->nullable();
+- $table->string('name')->unique();
+
+
+*** php artisan make:migration create_agentscolatites_table
+
+
+
+// upload image
+get avec url :  http://localhost:8000/storage/uploads/orangep.png
+get by id image : http://localhost:8000/api/files/1
+post http://localhost:8001/api/files     avec titre et file 
