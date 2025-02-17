@@ -128,4 +128,223 @@ class LectureController extends Controller
 
         return response()->json($lectures, 200);
     }
+
+
+    // public function getAllDataPredict($batterieId){
+    //     $lectures = Lecture::where('batterie_id', $batterieId)->get();
+
+    //     if ($lectures->isEmpty()) {
+    //         return response()->json(['message' => 'No lectures found for this batterie_id'], 404);
+    //     }
+
+
+
+
+    //     echo $lectures; 
+
+    //     return response()->json($lectures, 200);
+    // }
+
+//     public function getAllDataPredict($batterieId)
+// {
+//     // Récupérer toutes les lectures pour la batterie donnée
+//     $lectures = Lecture::where('batterie_id', $batterieId)
+//                         ->orderBy('created_at')
+//                         ->get();
+
+//     if ($lectures->isEmpty()) {
+//         return response()->json(['message' => 'No lectures found for this batterie_id'], 404);
+//     }
+
+//     // Initialiser les variables pour suivre les cycles
+//     $currentCycle = 0.0;
+//     $isCharging = null;
+//     $previousSoc = $lectures[0]->soc;
+
+//     // Parcourir les lectures pour calculer les cycles
+//     foreach ($lectures as $lecture) {
+//         // Déterminer si la batterie est en charge ou en décharge
+//         if ($lecture->soc > $previousSoc) {
+//             $isCharging = true;
+//         } elseif ($lecture->soc < $previousSoc) {
+//             $isCharging = false;
+//         }
+
+//         // Calculer le changement de SOC
+//         $socChange = abs($lecture->soc - $previousSoc);
+
+//         // Mettre à jour le cycle actuel
+//         if ($isCharging !== null) {
+//             $currentCycle += $socChange / 100.0;
+//         }
+
+//         // Mettre à jour le SOC précédent
+//         $previousSoc = $lecture->soc;
+//     }
+
+//     return response()->json(['batterie_id' => $batterieId, 'charge_cycles' => $currentCycle], 200);
+// }
+
+// public function getAllDataPredict($batterieId)
+// {
+//     // Récupérer toutes les lectures pour la batterie donnée
+//     $lectures = Lecture::where('batterie_id', $batterieId)
+//                         ->orderBy('created_at')
+//                         ->get();
+
+//     if ($lectures->isEmpty()) {
+//         return response()->json(['message' => 'No lectures found for this batterie_id'], 404);
+//     }
+
+//     // Initialiser les variables pour suivre les cycles et les temps
+//     $currentCycle = 0.0;
+//     $totalChargeTime = 0;
+//     $totalDischargeTime = 0;
+//     $isCharging = null;
+//     $previousSoc = $lectures[0]->soc;
+//     $previousTime = strtotime($lectures[0]->created_at);
+
+//     // Parcourir les lectures pour calculer les cycles et les temps
+//     foreach ($lectures as $lecture) {
+//         $currentTime = strtotime($lecture->created_at);
+//         $timeDifference = $currentTime - $previousTime; // Différence en secondes
+
+//         // Déterminer si la batterie est en charge ou en décharge
+//         if ($lecture->soc > $previousSoc) {
+//             $isCharging = true;
+//             $totalChargeTime += $timeDifference;
+//         } elseif ($lecture->soc < $previousSoc) {
+//             $isCharging = false;
+//             $totalDischargeTime += $timeDifference;
+//         }
+
+//         // Calculer le changement de SOC
+//         $socChange = abs($lecture->soc - $previousSoc);
+
+//         // Mettre à jour le cycle actuel
+//         if ($isCharging !== null) {
+//             $currentCycle += $socChange / 100.0;
+//         }
+
+//         // Mettre à jour le SOC précédent et le temps précédent
+//         $previousSoc = $lecture->soc;
+//         $previousTime = $currentTime;
+//     }
+
+//     // Convertir les temps en heures pour une meilleure lisibilité
+//     $totalChargeTimeHours = $totalChargeTime / 3600;
+//     $totalDischargeTimeHours = $totalDischargeTime / 3600;
+
+//     return response()->json([
+//         'batterie_id' => $batterieId,
+//         'charge_cycles' => $currentCycle,
+//         'total_charge_time_hours' => $totalChargeTimeHours,
+//         'total_discharge_time_hours' => $totalDischargeTimeHours
+//     ], 200);
+// }
+
+public function getAllDataPredict($batterieId)
+{
+    // Récupérer toutes les lectures pour la batterie donnée
+    $lectures = Lecture::where('batterie_id', $batterieId)
+                        ->orderBy('created_at')
+                        ->get();
+
+    if ($lectures->isEmpty()) {
+        return response()->json(['message' => 'No lectures found for this batterie_id'], 404);
+    }
+
+    // Initialiser les variables pour suivre les cycles et les moyennes
+    $totalDischarge = 0;
+    $totalChargeTime = 0;
+    $totalDischargeTime = 0;
+    $chargeTensions = [];
+    $dischargeTensions = [];
+    $chargeCurrents = [];
+    $dischargeCurrents = [];
+    $chargeTemperatures = [];
+    $dischargeTemperatures = [];
+    $previousSoc = $lectures[0]->soc;
+    $previousTime = strtotime($lectures[0]->created_at);
+
+    // Parcourir les lectures pour calculer les cycles et les moyennes
+    foreach ($lectures as $lecture) {
+        $currentTime = strtotime($lecture->created_at);
+        $timeDifference = $currentTime - $previousTime; // Différence en secondes
+
+        // Déterminer si la batterie est en charge ou en décharge
+        if ($lecture->soc > $previousSoc) {
+            // Charge détectée
+            $totalChargeTime += $timeDifference;
+            $chargeTensions[] = $lecture->tension;
+            $chargeCurrents[] = $lecture->courant;
+            $chargeTemperatures[] = $lecture->temperature;
+        } elseif ($lecture->soc < $previousSoc) {
+            // Décharge détectée
+            $totalDischargeTime += $timeDifference;
+            $totalDischarge += abs($lecture->soc - $previousSoc);
+            $dischargeTensions[] = $lecture->tension;
+            $dischargeCurrents[] = $lecture->courant;
+            $dischargeTemperatures[] = $lecture->temperature;
+        }
+
+        // Mettre à jour le SOC précédent et le temps précédent
+        $previousSoc = $lecture->soc;
+        $previousTime = $currentTime;
+    }
+
+    // Calculer le nombre total de cycles
+    $totalCycles = $totalDischarge / 100;
+
+    // Calculer les moyennes
+    $avgChargeVoltage = count($chargeTensions) ? array_sum($chargeTensions) / count($chargeTensions) : 0;
+    $avgDischargeVoltage = count($dischargeTensions) ? array_sum($dischargeTensions) / count($dischargeTensions) : 0;
+    $avgChargeCurrent = count($chargeCurrents) ? array_sum($chargeCurrents) / count($chargeCurrents) : 0;
+    $avgDischargeCurrent = count($dischargeCurrents) ? array_sum($dischargeCurrents) / count($dischargeCurrents) : 0;
+    $avgChargeTemperature = count($chargeTemperatures) ? array_sum($chargeTemperatures) / count($chargeTemperatures) : 0;
+    $avgDischargeTemperature = count($dischargeTemperatures) ? array_sum($dischargeTemperatures) / count($dischargeTemperatures) : 0;
+
+    // Retourner les résultats sous forme de réponse JSON
+    return response()->json([
+        'batterie_id' => $batterieId,
+        'total_cycles' => $totalCycles,
+        'total_charge_time_seconds' => $totalChargeTime,
+        'total_discharge_time_seconds' => $totalDischargeTime,
+        'avg_charge_voltage' => $avgChargeVoltage,
+        'avg_discharge_voltage' => $avgDischargeVoltage,
+        'avg_charge_current' => $avgChargeCurrent,
+        'avg_discharge_current' => $avgDischargeCurrent,
+        'avg_charge_temperature' => $avgChargeTemperature,
+        'avg_discharge_temperature' => $avgDischargeTemperature
+    ], 200);
+}
+
+
+
+public function getAllDataPredictByParc($parcId)
+{
+    // Récupérer toutes les batteries associées à un parc donné
+    $batteries = Batterie::where('parc_id', $parcId)->get();
+
+    // Initialiser un tableau pour stocker les résultats
+    $data = $batteries->map(function ($batterie) {
+        $batterieId = $batterie->id;
+
+        // Appeler la fonction calculateCycleSummary pour chaque batterie
+        $cycleSummary = $this->getAllDataPredict($batterieId);
+
+        // Convertir la réponse JSON en tableau associatif
+        $cycleSummaryData = json_decode($cycleSummary->getContent(), true);
+
+        // Retourner les données de la batterie avec le résumé des cycles
+        return [
+            'batterie_id' => $batterieId,
+            'cycle_summary' => $cycleSummaryData,
+        ];
+    });
+
+    // Retourner les résultats sous forme de réponse JSON
+    return response()->json($data, 200);
+}
+
 }

@@ -67,6 +67,8 @@ Route::post('/lecture', [LectureController::class, 'store']);
 Route::get('/lecture/{id}', [LectureController::class, 'show']);
 Route::put('/lecture/{id}', [LectureController::class, 'update']);
 Route::get('/lecture/{id}/batterie', [LectureController::class, 'getByBatterieId']);
+Route::get('/lecture/predictData/{id}', [LectureController::class, 'getAllDataPredict']);
+Route::get('/lecture/predictData/parc/{id}', [LectureController::class, 'getAllDataPredictByParc']);
 
 Route::get('/lecture/parc/{idparc}', [LectureController::class, 'getLectureByParcId']);
 
