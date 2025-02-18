@@ -329,6 +329,7 @@ public function getAllDataPredictByParc($parcId)
     // Initialiser un tableau pour stocker les résultats
     $data = $batteries->map(function ($batterie) {
         $batterieId = $batterie->id;
+        $batterieInfo = $batterie->load(['parc.contacts', 'parametreBatteries']);
 
         // Appeler la fonction calculateCycleSummary pour chaque batterie
         $cycleSummary = $this->getAllDataPredict($batterieId);
@@ -339,6 +340,8 @@ public function getAllDataPredictByParc($parcId)
         // Retourner les données de la batterie avec le résumé des cycles
         return [
             'batterie_id' => $batterieId,
+            'batterie_Info' => $batterieInfo,
+
             'cycle_summary' => $cycleSummaryData,
         ];
     });
