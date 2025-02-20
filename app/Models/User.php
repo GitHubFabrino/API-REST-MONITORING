@@ -26,8 +26,14 @@ class User extends Authenticatable implements JWTSubject
         'adresse',
         'nom_photo_profile',
         'validation_compte',
-        // 'date_inscription',
+        'file_id', 
     ];
+
+    public function file()
+{
+    return $this->belongsTo(File::class);
+}
+
 
     public function parcs()
     {

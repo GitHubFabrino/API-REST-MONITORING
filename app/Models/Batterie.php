@@ -25,6 +25,7 @@ class Batterie extends Model
         'courant',
         'temperature',
         'dod_max',
+        'file_id',
     ];
 
     // Relation avec la table parc
@@ -33,11 +34,15 @@ class Batterie extends Model
         return $this->belongsTo(Parc::class);
     }
 
-    // Relation avec ParametreBatterie
-    // Dans Batterie.php
     public function parametreBatteries()
     {
         return $this->belongsTo(ParametreBatterie::class, 'parametre_batterie_id');
     }
+
+    public function file()
+{
+    return $this->belongsTo(File::class);
+}
+
 
 }

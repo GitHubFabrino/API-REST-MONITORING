@@ -13,4 +13,14 @@ class File extends Model
         'titre',
         'file_name'
     ];
+    public function batteries()
+    {
+        return $this->hasMany(Batterie::class);
+    }
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
 }

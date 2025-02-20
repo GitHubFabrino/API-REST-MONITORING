@@ -40,10 +40,12 @@ Route::apiResource('products', ProductController::class);
 
 // Route::apiResource('files', FileController::class);
 Route::apiResource('files', FileController::class);
+Route::post('files/batterie/upload/{idBat}', [FileController::class, 'uploadFileBatterie']);
+Route::post('files/user/upload/{idBat}', [FileController::class, 'uploadFileUser']);
+
+
+
 Route::post('parcs/{parcId}/upload', [ParcController::class, 'uploadFile']);
-
-
-
 
 Route::get('/parcs', [ParcController::class, 'index']);
 Route::post('/parcs', [ParcController::class, 'store']);

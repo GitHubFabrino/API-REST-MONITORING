@@ -57,7 +57,7 @@ class AuthController extends Controller
         $user->username = $validatedData['username'];
         $user->phone = $validatedData['phone'];
         $user->adresse = $validatedData['adresse'];
-        
+
         // Sauvegarde les modifications 
         $user->save();
         // Renvoie une réponse JSON avec les données mises à jour 
@@ -117,11 +117,22 @@ class AuthController extends Controller
 
     public function createNewToken($token)
     {
+
+        $user = Auth::user();
+        $user->load('file'); // Charge la relation 'file'
+
+
+        $fileUrl = $user->file ? asset('storage/uploads/' . $user->file->file_name) : null;
+
+        // Mettre à jour l'information du fichier dans la batterie
+        if ($user->file) {
+            $user->file->file_name = $fileUrl;
+        }
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => JWTAuth::factory()->getTTL() * 60,
-            'user' => Auth::user()
+            'user' => $user
         ]);
     }
     public function profil()

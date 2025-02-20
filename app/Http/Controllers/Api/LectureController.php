@@ -320,28 +320,33 @@ public function getAllDataPredict($batterieId)
 }
 
 
-
 public function getAllDataPredictByParc($parcId)
 {
-    // Récupérer toutes les batteries associées à un parc donné
-    $batteries = Batterie::where('parc_id', $parcId)->get();
+    // Récupérer toutes les batteries associées à un parc donné avec les relations nécessaires
+    $batteries = Batterie::with(['parc.contacts', 'parametreBatteries', 'file'])
+                        ->where('parc_id', $parcId)
+                        ->get();
 
-    // Initialiser un tableau pour stocker les résultats
+    // Transformer les données pour inclure les informations nécessaires
     $data = $batteries->map(function ($batterie) {
-        $batterieId = $batterie->id;
-        $batterieInfo = $batterie->load(['parc.contacts', 'parametreBatteries']);
-
         // Appeler la fonction calculateCycleSummary pour chaque batterie
-        $cycleSummary = $this->getAllDataPredict($batterieId);
+        $cycleSummary = $this->getAllDataPredict($batterie->id);
 
         // Convertir la réponse JSON en tableau associatif
         $cycleSummaryData = json_decode($cycleSummary->getContent(), true);
 
+        // Construire l'URL complète du fichier si un fichier est associé
+        $fileUrl = $batterie->file ? asset('storage/uploads/' . $batterie->file->file_name) : null;
+
+        // Mettre à jour l'information du fichier dans la batterie
+        if ($batterie->file) {
+            $batterie->file->file_name = $fileUrl;
+        }
+
         // Retourner les données de la batterie avec le résumé des cycles
         return [
-            'batterie_id' => $batterieId,
-            'batterie_Info' => $batterieInfo,
-
+            'batterie_id' => $batterie->id,
+            'batterie_Info' => $batterie,
             'cycle_summary' => $cycleSummaryData,
         ];
     });
@@ -349,5 +354,6 @@ public function getAllDataPredictByParc($parcId)
     // Retourner les résultats sous forme de réponse JSON
     return response()->json($data, 200);
 }
+
 
 }
