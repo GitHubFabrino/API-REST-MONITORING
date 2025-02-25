@@ -39,5 +39,9 @@ class Parc extends Model
         return $this->hasMany(Batterie::class);
     }
 
+    public function personnel()
+    {
+        return $this->belongsToMany(User::class, 'personnel', 'parc_id', 'user_id');
+    }
 
 }

@@ -26,18 +26,30 @@ class User extends Authenticatable implements JWTSubject
         'adresse',
         'nom_photo_profile',
         'validation_compte',
-        'file_id', 
+        'file_id',
     ];
 
     public function file()
-{
-    return $this->belongsTo(File::class);
-}
+    {
+        return $this->belongsTo(File::class);
+    }
+
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id');
+    }
+
+
+    // public function parcs()
+    // {
+    //     return $this->hasMany(Parc::class);
+    // }
 
 
     public function parcs()
     {
-        return $this->hasMany(Parc::class);
+        return $this->belongsToMany(Parc::class, 'personnel', 'user_id', 'parc_id');
     }
 
     /**

@@ -243,6 +243,81 @@ class LectureController extends Controller
 //     ], 200);
 // }
 
+// public function getAllDataPredict($batterieId)
+// {
+//     // Récupérer toutes les lectures pour la batterie donnée
+//     $lectures = Lecture::where('batterie_id', $batterieId)
+//                         ->orderBy('created_at')
+//                         ->get();
+
+//     if ($lectures->isEmpty()) {
+//         return response()->json(['message' => 'No lectures found for this batterie_id'], 404);
+//     }
+
+//     // Initialiser les variables pour suivre les cycles et les moyennes
+//     $totalDischarge = 0;
+//     $totalChargeTime = 0;
+//     $totalDischargeTime = 0;
+//     $chargeTensions = [];
+//     $dischargeTensions = [];
+//     $chargeCurrents = [];
+//     $dischargeCurrents = [];
+//     $chargeTemperatures = [];
+//     $dischargeTemperatures = [];
+//     $previousSoc = $lectures[0]->soc;
+//     $previousTime = strtotime($lectures[0]->created_at);
+
+//     // Parcourir les lectures pour calculer les cycles et les moyennes
+//     foreach ($lectures as $lecture) {
+//         $currentTime = strtotime($lecture->created_at);
+//         $timeDifference = $currentTime - $previousTime; // Différence en secondes
+
+//         // Déterminer si la batterie est en charge ou en décharge
+//         if ($lecture->soc > $previousSoc) {
+//             // Charge détectée
+//             $totalChargeTime += $timeDifference;
+//             $chargeTensions[] = $lecture->tension;
+//             $chargeCurrents[] = $lecture->courant;
+//             $chargeTemperatures[] = $lecture->temperature;
+//         } elseif ($lecture->soc < $previousSoc) {
+//             // Décharge détectée
+//             $totalDischargeTime += $timeDifference;
+//             $totalDischarge += abs($lecture->soc - $previousSoc);
+//             $dischargeTensions[] = $lecture->tension;
+//             $dischargeCurrents[] = $lecture->courant;
+//             $dischargeTemperatures[] = $lecture->temperature;
+//         }
+
+//         // Mettre à jour le SOC précédent et le temps précédent
+//         $previousSoc = $lecture->soc;
+//         $previousTime = $currentTime;
+//     }
+
+//     // Calculer le nombre total de cycles
+//     $totalCycles = $totalDischarge / 100;
+
+//     // Calculer les moyennes
+//     $avgChargeVoltage = count($chargeTensions) ? array_sum($chargeTensions) / count($chargeTensions) : 0;
+//     $avgDischargeVoltage = count($dischargeTensions) ? array_sum($dischargeTensions) / count($dischargeTensions) : 0;
+//     $avgChargeCurrent = count($chargeCurrents) ? array_sum($chargeCurrents) / count($chargeCurrents) : 0;
+//     $avgDischargeCurrent = count($dischargeCurrents) ? array_sum($dischargeCurrents) / count($dischargeCurrents) : 0;
+//     $avgChargeTemperature = count($chargeTemperatures) ? array_sum($chargeTemperatures) / count($chargeTemperatures) : 0;
+//     $avgDischargeTemperature = count($dischargeTemperatures) ? array_sum($dischargeTemperatures) / count($dischargeTemperatures) : 0;
+
+//     // Retourner les résultats sous forme de réponse JSON
+//     return response()->json([
+//         'batterie_id' => $batterieId,
+//         'total_cycles' => $totalCycles,
+//         'total_charge_time_seconds' => $totalChargeTime,
+//         'total_discharge_time_seconds' => $totalDischargeTime,
+//         'avg_charge_voltage' => $avgChargeVoltage,
+//         'avg_discharge_voltage' => $avgDischargeVoltage,
+//         'avg_charge_current' => $avgChargeCurrent,
+//         'avg_discharge_current' => $avgDischargeCurrent,
+//         'avg_charge_temperature' => $avgChargeTemperature,
+//         'avg_discharge_temperature' => $avgDischargeTemperature
+//     ], 200);
+// }
 public function getAllDataPredict($batterieId)
 {
     // Récupérer toutes les lectures pour la batterie donnée
@@ -267,6 +342,10 @@ public function getAllDataPredict($batterieId)
     $previousSoc = $lectures[0]->soc;
     $previousTime = strtotime($lectures[0]->created_at);
 
+    // Initialiser les variables pour les tensions max et min
+    $maxDischargeTension = 0;
+    $minChargeTension = PHP_INT_MAX;
+
     // Parcourir les lectures pour calculer les cycles et les moyennes
     foreach ($lectures as $lecture) {
         $currentTime = strtotime($lecture->created_at);
@@ -279,6 +358,11 @@ public function getAllDataPredict($batterieId)
             $chargeTensions[] = $lecture->tension;
             $chargeCurrents[] = $lecture->courant;
             $chargeTemperatures[] = $lecture->temperature;
+
+            // Mettre à jour la tension minimale pendant la charge
+            if ($lecture->tension < $minChargeTension) {
+                $minChargeTension = $lecture->tension;
+            }
         } elseif ($lecture->soc < $previousSoc) {
             // Décharge détectée
             $totalDischargeTime += $timeDifference;
@@ -286,6 +370,11 @@ public function getAllDataPredict($batterieId)
             $dischargeTensions[] = $lecture->tension;
             $dischargeCurrents[] = $lecture->courant;
             $dischargeTemperatures[] = $lecture->temperature;
+
+            // Mettre à jour la tension maximale pendant la décharge
+            if ($lecture->tension > $maxDischargeTension) {
+                $maxDischargeTension = $lecture->tension;
+            }
         }
 
         // Mettre à jour le SOC précédent et le temps précédent
@@ -315,7 +404,9 @@ public function getAllDataPredict($batterieId)
         'avg_charge_current' => $avgChargeCurrent,
         'avg_discharge_current' => $avgDischargeCurrent,
         'avg_charge_temperature' => $avgChargeTemperature,
-        'avg_discharge_temperature' => $avgDischargeTemperature
+        'avg_discharge_temperature' => $avgDischargeTemperature,
+        'max_discharge_tension' => $maxDischargeTension,
+        'min_charge_tension' => $minChargeTension
     ], 200);
 }
 

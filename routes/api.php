@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\PredictionController;
+use App\Http\Controllers\PersonnelController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\AuthorController;
 use App\Http\Controllers\Api\AdminController;
@@ -202,6 +203,10 @@ Route::middleware('auth:api')->group(function () {
     // Route::apiResource('admins', AdminController::class);    // Si avec JWT
 
 });
+
+
+
+Route::get('/parcs/{parcId}/users', [PersonnelController::class, 'getUsersByParc']);
 
 
 

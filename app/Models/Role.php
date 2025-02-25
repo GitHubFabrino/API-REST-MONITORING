@@ -10,8 +10,13 @@ class Role extends Model
     use HasFactory;
     protected $fillable = ['name'];
 
-    public function admins()
+    // public function admins()
+    // {
+    //     return $this->belongsToMany(Admin::class,'role_admin','role_id', 'admin_id' );
+    // }
+
+    public function users()
     {
-        return $this->belongsToMany(Admin::class,'role_admin','role_id', 'admin_id' );
+        return $this->belongsToMany(User::class, 'role_user', 'role_id', 'user_id');
     }
 }
