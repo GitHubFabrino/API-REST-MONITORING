@@ -47,6 +47,7 @@ Route::post('files/user/upload/{idBat}', [FileController::class, 'uploadFileUser
 
 
 Route::post('parcs/{parcId}/upload', [ParcController::class, 'uploadFile']);
+Route::post('user/{idUser}/upload', [ParcController::class, 'uploadFileUsers']);
 
 Route::get('/parcs', [ParcController::class, 'index']);
 Route::post('/parcs', [ParcController::class, 'store']);
@@ -207,6 +208,10 @@ Route::middleware('auth:api')->group(function () {
 
 
 Route::get('/parcs/{parcId}/users', [PersonnelController::class, 'getUsersByParc']);
+Route::put('/user/update/{id}', [PersonnelController::class, 'updateUser']);
+Route::post('/user/create/technicien', [PersonnelController::class, 'createUserTechnicien']);
+Route::delete('/user/delete/{id}', [PersonnelController::class, 'deleteUser']);
+
 
 
 

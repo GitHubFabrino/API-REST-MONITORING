@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
 use App\Models\File;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 use App\Models\Parc;
@@ -111,6 +112,30 @@ class ParcController extends Controller
         $parc = Parc::findOrFail($parcId);
         $parc->file_id = $fileRecord->id;
         $parc->save();
+
+        $fileUrl = asset('storage/uploads/' . $fileRecord->file_name);
+
+        return response()->json(['url' => $fileUrl], 201);
+    }
+    
+    public function uploadFileUsers(Request $request, $IdUser)
+    {
+        $validatedData = $request->validate([
+            'file' => 'required|file|mimes:jpg,png,pdf,docx'
+        ]);
+
+        $file = $request->file('file');
+        $fileName = $file->getClientOriginalName();
+        $path = $file->storeAs('public/uploads', $fileName);
+
+        $fileRecord = File::create([
+            'titre' => $fileName, // Vous pouvez ajuster ceci si nécessaire
+            'file_name' => $fileName
+        ]);
+
+        $user = User::findOrFail($IdUser);
+        $user->file_id = $fileRecord->id;
+        $user->save();
 
         $fileUrl = asset('storage/uploads/' . $fileRecord->file_name);
 
